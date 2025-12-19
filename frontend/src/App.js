@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Header from './components/Header';
 import ProductList from './components/ProductList';
 import ProductForm from './components/ProductForm';
+import Chat from './components/Chat';  // <-- Добавь импорт
 import './index.css';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Route path="/add" element={<ProductForm />} />
           <Route path="/edit/:id" element={<ProductForm />} />
         </Routes>
+        <Chat />  {}
       </main>
       <Link to="/add" className="fab-button">+</Link>
     </Router>
