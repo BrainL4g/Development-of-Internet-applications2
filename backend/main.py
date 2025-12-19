@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db.database import Base, engine
 from routes.product_routes import router as product_router
+from routes.chat import router as chat_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -20,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(product_router)
+app.include_router(chat_router)
 
 @app.get("/")
 def root():
