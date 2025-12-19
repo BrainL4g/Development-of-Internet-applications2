@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-function ProductForm({ products, setProducts }) {
+function ProductForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -12,31 +12,56 @@ function ProductForm({ products, setProducts }) {
 
   const isEdit = !!id;
 
-  useEffect(() => {
-    if (isEdit) {
-      const product = products.find(p => p.id === parseInt(id));
-      if (product) setFormData(product);
+  const fetchProduct = useCallback(async () => {
+    if (!isEdit) return;
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/products/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({
+          name: data.name || '',
+          description: data.description || '',
+          price: data.price || ''
+        });
+      }
+    } catch (error) {
+      console.error('Ошибка загрузки продукта:', error);
     }
-  }, [id, products, isEdit]);
+  }, [id, isEdit]);
+
+  useEffect(() => {
+    fetchProduct();
+  }, [fetchProduct]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isEdit) {
-      // Редактирование
-      setProducts(products.map(p => p.id === parseInt(id) ? { ...formData, id: parseInt(id) } : p));
-    } else {
-      // Добавление нового
-      const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-      const newProduct = { ...formData, id: newId, price: Number(formData.price) };
-      setProducts([...products, newProduct]);
-    }
+    try {
+      if (isEdit) {
+        await fetch(`http://127.0.0.1:8000/products/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+      } else {
+        const form = new FormData();
+        form.append('name', formData.name);
+        form.append('description', formData.description || '');
+        form.append('price', formData.price);
 
-    navigate('/');
+        await fetch('http://127.0.0.1:8000/products/', {
+          method: 'POST',
+          body: form
+        });
+      }
+      navigate('/');
+    } catch (error) {
+      console.error('Ошибка сохранения:', error);
+    }
   };
 
   return (
@@ -44,7 +69,7 @@ function ProductForm({ products, setProducts }) {
       <h2>{isEdit ? 'Редактировать продукт' : 'Добавить продукт'}</h2>
       <form onSubmit={handleSubmit} className="product-form">
         <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Название" required />
-        <input type="text" name="description" value={formData.description} onChange={handleChange} placeholder="Описание" />
+        <input type="text" name="description" value={formData.description || ''} onChange={handleChange} placeholder="Описание" />
         <input type="number" name="price" value={formData.price} onChange={handleChange} placeholder="Цена (₽)" min="1" required />
         <div className="form-actions">
           <button type="submit" className="btn-save">Сохранить</button>

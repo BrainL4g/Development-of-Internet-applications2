@@ -1,17 +1,22 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import ProductItem from './ProductItem';
+import { useState, useEffect } from 'react';
 
-const initialProducts = [
-  { id: 1, name: 'Яблоки', description: 'Свежие зелёные яблоки', price: 120 },
-  { id: 2, name: 'Молоко', description: '3.2% жирности, 1л', price: 85 },
-  { id: 3, name: 'Хлеб', description: 'Ржаной, нарезанный', price: 45 },
-  { id: 4, name: 'Бананы', description: 'Спелые, Эквадор', price: 95 },
-];
+function ProductList() {
+  const [products, setProducts] = useState([]);
 
-function ProductList({ products, setProducts }) {
-  const handleDelete = (id) => {
-    setProducts(products.filter(p => p.id !== id));
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    const response = await fetch('http://127.0.0.1:8000/products');
+    const data = await response.json();
+    setProducts(data);
+  };
+
+  const handleDelete = async (id) => {
+    await fetch(`http://127.0.0.1:8000/products/${id}`, { method: 'DELETE' });
+    fetchProducts();
   };
 
   return (
