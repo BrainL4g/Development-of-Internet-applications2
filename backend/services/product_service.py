@@ -20,8 +20,8 @@ class ProductService:
         return repo_get_product_by_id(db, product_id)
 
     @staticmethod
-    def create_product(db: Session, product_data: ProductCreate) -> ProductSchema:
-        return repo_create_product(db, product_data)
+    def create_product(db: Session, product_data: ProductCreate, user_id: int) -> ProductSchema:
+        return repo_create_product(db, product_data, user_id=user_id)
 
     @staticmethod
     def update_product(db: Session, product_id: int, product_update: ProductUpdate) -> Optional[ProductSchema]:
