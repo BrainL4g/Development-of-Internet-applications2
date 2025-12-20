@@ -1,22 +1,37 @@
 import ProductItem from './ProductItem';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authFetch } from '../services/api';
 
 function ProductList() {
   const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!localStorage.getItem('access_token')) {
+      navigate('/login');
+      return;
+    }
     fetchProducts();
-  }, []);
+  }, [navigate]);
 
   const fetchProducts = async () => {
-    const response = await fetch('http://127.0.0.1:8000/products');
-    const data = await response.json();
-    setProducts(data);
+    try {
+      const res = await authFetch('http://127.0.0.1:8000/products');
+      const data = await res.json();
+      setProducts(data);
+    } catch (err) {
+      navigate('/login');
+    }
   };
 
   const handleDelete = async (id) => {
-    await fetch(`http://127.0.0.1:8000/products/${id}`, { method: 'DELETE' });
-    fetchProducts();
+    try {
+      await authFetch(`http://127.0.0.1:8000/products/${id}`, { method: 'DELETE' });
+      fetchProducts();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

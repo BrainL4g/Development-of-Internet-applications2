@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { authFetch } from '../services/api';
 
 function ProductForm() {
   const { id } = useParams();
@@ -12,22 +13,27 @@ function ProductForm() {
 
   const isEdit = !!id;
 
+  useEffect(() => {
+    if (!localStorage.getItem('access_token')) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
   const fetchProduct = useCallback(async () => {
     if (!isEdit) return;
     try {
-      const response = await fetch(`http://127.0.0.1:8000/products/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFormData({
-          name: data.name || '',
-          description: data.description || '',
-          price: data.price || ''
-        });
-      }
+      const res = await authFetch(`http://127.0.0.1:8000/products/${id}`);
+      const data = await res.json();
+      setFormData({
+        name: data.name || '',
+        description: data.description || '',
+        price: data.price || ''
+      });
     } catch (error) {
       console.error('Ошибка загрузки продукта:', error);
+      navigate('/login');
     }
-  }, [id, isEdit]);
+  }, [id, isEdit, navigate]);
 
   useEffect(() => {
     fetchProduct();
@@ -39,13 +45,11 @@ function ProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (isEdit) {
-        await fetch(`http://127.0.0.1:8000/products/${id}`, {
+        await authFetch(`http://127.0.0.1:8000/products/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(formData),
         });
       } else {
         const form = new FormData();
@@ -53,14 +57,16 @@ function ProductForm() {
         form.append('description', formData.description || '');
         form.append('price', formData.price);
 
-        await fetch('http://127.0.0.1:8000/products/', {
+        await authFetch('http://127.0.0.1:8000/products/', {
           method: 'POST',
-          body: form
+          headers: {},
+          body: form,
         });
       }
       navigate('/');
     } catch (error) {
       console.error('Ошибка сохранения:', error);
+      navigate('/login');
     }
   };
 

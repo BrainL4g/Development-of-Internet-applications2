@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
-
 class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -13,10 +12,8 @@ class ProductBase(BaseModel):
             raise ValueError('Цена должна быть больше 0')
         return v
 
-
 class ProductCreate(ProductBase):
     pass
-
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -29,9 +26,9 @@ class ProductUpdate(BaseModel):
             raise ValueError('Цена должна быть больше 0')
         return v
 
-
 class ProductSchema(ProductBase):
     id: int
+    user_id: int
 
     class Config:
         from_attributes = True
